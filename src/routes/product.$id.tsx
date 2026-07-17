@@ -32,7 +32,6 @@ function Product() {
         .from("listings")
         .select("*,listing_images(url,position),profiles!listings_user_id_fkey(id,full_name,avatar_url,phone,island)")
         .eq("id", id).maybeSingle();
-      if (data) supabase.rpc("increment_views" as any, { _id: id }).then(() => {}).catch(() => {});
       return data;
     },
   });
