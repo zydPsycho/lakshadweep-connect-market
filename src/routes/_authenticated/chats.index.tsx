@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/lib/auth";
 import { timeAgo } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/chats")({ component: ChatsList });
+export const Route = createFileRoute("/_authenticated/chats/")({ component: ChatsList });
 
 function ChatsList() {
   const { user } = useAuth();
