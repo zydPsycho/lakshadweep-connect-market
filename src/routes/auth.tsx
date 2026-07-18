@@ -73,10 +73,11 @@ function EmailAuth({ onSuccess }: { onSuccess: () => void }) {
         toast.success("Welcome back!");
         onSuccess();
       } else if (mode === "signup") {
+        if (!terms) throw new Error("Please accept the Terms of Service and Privacy Policy to continue.");
         const { error } = await supabase.auth.signUp({
           email, password,
           options: {
-            data: { full_name: name },
+            data: { full_name: name, terms_accepted: "true" },
             emailRedirectTo: window.location.origin,
           },
         });
