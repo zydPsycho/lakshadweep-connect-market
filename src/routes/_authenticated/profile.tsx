@@ -6,7 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 import { toast } from "sonner";
-import { ChevronRight, LogOut, Heart, Package, Settings, Bell, ShieldCheck, UserCog } from "lucide-react";
+import { ChevronRight, LogOut, Heart, Package, Settings, Bell, ShieldCheck, UserCog, MessageSquare, FileText, Lock } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated/profile")({ component: Profile });
@@ -61,7 +61,10 @@ function Profile() {
           <Row to="/favourites" icon={<Heart className="size-4" />} label={t("favourites")} />
           <Row to="/notifications" icon={<Bell className="size-4" />} label={t("notifications")} />
           <Row to="/edit-profile" icon={<UserCog className="size-4" />} label={t("edit_profile")} />
+          <Row to="/feedback" icon={<MessageSquare className="size-4" />} label="Send feedback" />
           <Row to="/settings" icon={<Settings className="size-4" />} label={t("settings")} />
+          <Row to="/terms" icon={<FileText className="size-4" />} label="Terms of Service" />
+          <Row to="/privacy" icon={<Lock className="size-4" />} label="Privacy Policy" />
           {isAdmin && <Row to="/admin" icon={<ShieldCheck className="size-4" />} label={t("admin")} />}
         </div>
 
