@@ -57,6 +57,7 @@ function AuthPage() {
 function EmailAuth({ onSuccess }: { onSuccess: () => void }) {
   const { t } = useLang();
   const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
+  const [terms, setTerms] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
