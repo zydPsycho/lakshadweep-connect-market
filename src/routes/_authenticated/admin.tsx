@@ -17,9 +17,11 @@ function AdminLayout() {
     { to: "/admin", label: "Dashboard" },
     { to: "/admin/listings", label: "Listings" },
     { to: "/admin/users", label: "Users" },
+    { to: "/admin/reports", label: "Reports" },
+    { to: "/admin/feedback", label: "Feedback" },
+    { to: "/admin/appeals", label: "Appeals" },
     { to: "/admin/categories", label: "Categories" },
     { to: "/admin/banners", label: "Banners" },
-    { to: "/admin/reports", label: "Reports" },
   ];
   return (
     <div className="min-h-screen bg-background">

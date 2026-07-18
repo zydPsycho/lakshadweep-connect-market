@@ -57,6 +57,7 @@ function AuthPage() {
 function EmailAuth({ onSuccess }: { onSuccess: () => void }) {
   const { t } = useLang();
   const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
+  const [terms, setTerms] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -72,10 +73,11 @@ function EmailAuth({ onSuccess }: { onSuccess: () => void }) {
         toast.success("Welcome back!");
         onSuccess();
       } else if (mode === "signup") {
+        if (!terms) throw new Error("Please accept the Terms of Service and Privacy Policy to continue.");
         const { error } = await supabase.auth.signUp({
           email, password,
           options: {
-            data: { full_name: name },
+            data: { full_name: name, terms_accepted: "true" },
             emailRedirectTo: window.location.origin,
           },
         });
@@ -115,7 +117,19 @@ function EmailAuth({ onSuccess }: { onSuccess: () => void }) {
           <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
         </div>
       )}
-      <Button type="submit" className="w-full" disabled={busy}>
+      {mode === "signup" && (
+        <label className="flex items-start gap-2 text-xs text-muted-foreground">
+          <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)}
+            className="mt-0.5 size-4 accent-[hsl(var(--primary))]" />
+          <span>
+            I agree to OLKV's{" "}
+            <Link to="/terms" className="text-primary underline">Terms of Service</Link>{" "}
+            and{" "}
+            <Link to="/privacy" className="text-primary underline">Privacy Policy</Link>.
+          </span>
+        </label>
+      )}
+      <Button type="submit" className="w-full" disabled={busy || (mode === "signup" && !terms)}>
         {busy ? "…" : mode === "signin" ? t("sign_in") : mode === "signup" ? t("sign_up") : "Send reset email"}
       </Button>
       <div className="flex items-center justify-between text-xs">

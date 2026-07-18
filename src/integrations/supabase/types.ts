@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      appeals: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          id: string
+          reason: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          reason: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          reason?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           active: boolean
@@ -140,6 +176,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feedback: {
+        Row: {
+          admin_reply: string | null
+          category: string
+          created_at: string
+          id: string
+          message: string
+          replied_at: string | null
+          replied_by: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_reply?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          message: string
+          replied_at?: string | null
+          replied_by?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_reply?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          replied_at?: string | null
+          replied_by?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       listing_images: {
         Row: {
@@ -306,32 +384,44 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned_at: string | null
           bio: string | null
           created_at: string
           full_name: string | null
           id: string
+          is_banned: boolean
           island: string | null
           phone: string | null
+          terms_accepted_at: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
           bio?: string | null
           created_at?: string
           full_name?: string | null
           id: string
+          is_banned?: boolean
           island?: string | null
           phone?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
           bio?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          is_banned?: boolean
           island?: string | null
           phone?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -373,6 +463,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          reviewer_id: string
+          seller_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          reviewer_id: string
+          seller_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          reviewer_id?: string
+          seller_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

@@ -6,7 +6,7 @@ import { TopBar } from "@/components/TopBar";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 import { formatINR, timeAgo } from "@/lib/format";
-import { Heart, Phone, MessageCircle, Share2, Flag, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Phone, MessageCircle, Share2, Flag, MapPin, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -152,6 +152,8 @@ function Product() {
           </section>
         )}
 
+        {seller && <SellerReviews sellerId={seller.id} sellerName={seller.full_name ?? "seller"} />}
+
         {/* Actions */}
         <div className="grid grid-cols-3 gap-2">
           <a href={digits ? `tel:${digits}` : "#"} className="flex flex-col items-center gap-1 rounded-2xl bg-primary py-3 text-primary-foreground shadow-float">
@@ -210,5 +212,114 @@ function ReportDialog({ listingId, onClose }: { listingId: string; onClose: () =
         <Button onClick={submit} disabled={busy}>Submit report</Button>
       </DialogFooter>
     </DialogContent>
+  );
+}
+
+function SellerReviews({ sellerId, sellerName }: { sellerId: string; sellerName: string }) {
+  const { user } = useAuth();
+  const nav = useNavigate();
+  const qc = useQueryClient();
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const { data: reviews = [] } = useQuery({
+    queryKey: ["reviews", sellerId],
+    queryFn: async () => (await supabase.from("reviews")
+      .select("*,profiles!reviews_reviewer_id_fkey(full_name,avatar_url)")
+      .eq("seller_id", sellerId).order("created_at", { ascending: false })).data ?? [],
+  });
+
+  const { data: mine } = useQuery({
+    queryKey: ["my-review", sellerId, user?.id],
+    enabled: !!user && user.id !== sellerId,
+    queryFn: async () => (await supabase.from("reviews")
+      .select("*").eq("seller_id", sellerId).eq("reviewer_id", user!.id).maybeSingle()).data,
+  });
+
+  const avg = reviews.length
+    ? reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length
+    : 0;
+
+  async function submit() {
+    if (!user) return nav({ to: "/auth", search: { redirect: window.location.pathname } });
+    if (user.id === sellerId) return toast.info("You can't review yourself.");
+    setBusy(true);
+    const payload = { seller_id: sellerId, reviewer_id: user.id, rating, comment: comment.trim() || null };
+    const { error } = mine
+      ? await supabase.from("reviews").update(payload).eq("id", mine.id)
+      : await supabase.from("reviews").insert(payload);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(mine ? "Review updated" : "Review posted");
+    setOpen(false); setComment("");
+    qc.invalidateQueries({ queryKey: ["reviews", sellerId] });
+    qc.invalidateQueries({ queryKey: ["my-review", sellerId] });
+  }
+
+  const canReview = user && user.id !== sellerId;
+
+  return (
+    <section className="rounded-2xl bg-surface p-4 ring-1 ring-border">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <h2 className="font-heading font-semibold">Seller reviews</h2>
+          <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+            {reviews.length > 0 ? (
+              <>
+                <Star className="size-3 fill-yellow-400 text-yellow-400" />
+                <span className="font-semibold text-foreground">{avg.toFixed(1)}</span>
+                <span>· {reviews.length} review{reviews.length === 1 ? "" : "s"}</span>
+              </>
+            ) : "No reviews yet"}
+          </div>
+        </div>
+        {canReview && (
+          <Button size="sm" variant="outline" onClick={() => {
+            setRating(mine?.rating ?? 5); setComment(mine?.comment ?? ""); setOpen((o) => !o);
+          }}>
+            {mine ? "Edit review" : "Write review"}
+          </Button>
+        )}
+      </div>
+
+      {open && canReview && (
+        <div className="mb-3 space-y-2 rounded-xl bg-background p-3 ring-1 ring-border">
+          <div className="flex items-center gap-1">
+            {[1,2,3,4,5].map((n) => (
+              <button key={n} type="button" onClick={() => setRating(n)}>
+                <Star className={"size-6 " + (n <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground")} />
+              </button>
+            ))}
+          </div>
+          <Textarea rows={3} placeholder={`Share your experience with ${sellerName}…`}
+            value={comment} onChange={(e) => setComment(e.target.value)} maxLength={500} />
+          <div className="flex gap-2">
+            <Button size="sm" onClick={submit} disabled={busy}>{mine ? "Update" : "Post"}</Button>
+            <Button size="sm" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {reviews.slice(0, 5).map((r: any) => (
+          <div key={r.id} className="rounded-xl bg-background p-3 ring-1 ring-border">
+            <div className="flex items-center gap-2">
+              <div className="size-7 overflow-hidden rounded-full bg-muted">
+                {r.profiles?.avatar_url && <img src={r.profiles.avatar_url} alt="" className="size-full object-cover" />}
+              </div>
+              <span className="text-sm font-medium">{r.profiles?.full_name ?? "user"}</span>
+              <div className="ml-auto flex items-center gap-0.5">
+                {[1,2,3,4,5].map((n) => (
+                  <Star key={n} className={"size-3 " + (n <= r.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground")} />
+                ))}
+              </div>
+            </div>
+            {r.comment && <p className="mt-1.5 text-sm text-muted-foreground">{r.comment}</p>}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
