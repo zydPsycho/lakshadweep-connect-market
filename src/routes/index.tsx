@@ -1,14 +1,18 @@
-import { Link, useNavigate } from "react-router-dom";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useEffect, useState, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
-import { CategoryChip, CategoryChipSkeleton } from "@/components/CategoryChip";
+import { CategoryChip } from "@/components/CategoryChip";
 import { ProductCard } from "@/components/ProductCard";
 import { useLang } from "@/lib/i18n";
 import { formatINR } from "@/lib/format";
 import { Search as SearchIcon } from "lucide-react";
+
+export const Route = createFileRoute("/")({
+  component: Home,
+});
 
 async function fetchCategories() {
   const { data } = await supabase.from("categories").select("*").eq("active", true).order("position");
@@ -33,11 +37,10 @@ async function fetchListings(filter: "featured" | "latest" | "nearby") {
   }));
 }
 
-export default function Home() {
+function Home() {
   const { t, lang } = useLang();
-  const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const { data: cats = [], isLoading: catsLoading } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
+  const { data: cats = [] } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
   const { data: banners = [] } = useQuery({ queryKey: ["banners"], queryFn: fetchBanners });
   const { data: featured = [] } = useQuery({ queryKey: ["listings", "featured"], queryFn: () => fetchListings("featured") });
   const { data: latest = [] } = useQuery({ queryKey: ["listings", "latest"], queryFn: () => fetchListings("latest") });
@@ -56,10 +59,11 @@ export default function Home() {
       <main className="mx-auto max-w-[430px] space-y-6 px-4 pt-4">
         {/* Search */}
         <form
+          action="/search"
           className="relative"
           onSubmit={(e) => {
             e.preventDefault();
-            navigate(`/search?q=${encodeURIComponent(query)}`);
+            window.location.href = `/search?q=${encodeURIComponent(query)}`;
           }}
         >
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -77,14 +81,10 @@ export default function Home() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-heading text-base font-semibold">{t("categories")}</h2>
           </div>
-          <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 snap-x snap-mandatory scroll-smooth">
-            {catsLoading ? (
-              Array.from({ length: 6 }).map((_, i) => <CategoryChipSkeleton key={i} />)
-            ) : (
-              cats.map((c: any, i: number) => (
-                <CategoryChip key={c.slug} cat={c} lang={lang} index={i} />
-              ))
-            )}
+          <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4">
+            {cats.map((c) => (
+              <CategoryChip key={c.slug} cat={c as any} lang={lang} />
+            ))}
           </div>
         </section>
 
@@ -92,14 +92,14 @@ export default function Home() {
         {banners.length > 0 && (
           <section className="relative overflow-hidden rounded-2xl ring-1 ring-border">
             <div className="aspect-[2/1] w-full">
-              {banners.map((b: any, i: number) => (
+              {banners.map((b, i) => (
                 <a
                   key={b.id}
                   href={b.link_url || "#"}
                   className={"absolute inset-0 transition-opacity duration-700 " + (i === bannerIdx ? "opacity-100" : "opacity-0")}
                 >
                   <img src={b.image_url} alt={b.title} className="size-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white flex flex-col justify-end">
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent p-4 text-white flex flex-col justify-end">
                     <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{b.subtitle}</div>
                     <div className="font-heading text-lg font-semibold">{b.title}</div>
                   </div>
@@ -107,14 +107,14 @@ export default function Home() {
               ))}
             </div>
             <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
-              {banners.map((_: any, i: number) => (
+              {banners.map((_, i) => (
                 <span key={i} className={"size-1.5 rounded-full " + (i === bannerIdx ? "bg-white" : "bg-white/50")} />
               ))}
             </div>
           </section>
         )}
         {banners.length === 0 && (
-          <section className="relative overflow-hidden rounded-2xl hero-gradient p-6 text-white">
+          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-accent p-6 text-white">
             <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">OLKV</div>
             <h3 className="font-heading text-xl font-semibold leading-tight">Buy • Sell • Connect<br/>across Lakshadweep</h3>
             <Link to="/sell" className="mt-3 inline-block rounded-lg bg-white/95 px-4 py-2 text-xs font-bold text-primary">Start selling</Link>
@@ -128,7 +128,8 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-3">
               {featured[0] && (
                 <Link
-                  to={`/product/${featured[0].id}`}
+                  to="/product/$id"
+                  params={{ id: featured[0].id }}
                   className="col-span-2 flex items-center gap-4 rounded-2xl bg-surface p-3 ring-1 ring-border"
                 >
                   <div className="size-24 shrink-0 overflow-hidden rounded-xl bg-muted">
@@ -141,8 +142,8 @@ export default function Home() {
                   </div>
                 </Link>
               )}
-              {featured.slice(1, 3).map((f: any) => (
-                <Link key={f.id} to={`/product/${f.id}`} className="flex flex-col rounded-2xl bg-surface p-3 ring-1 ring-border">
+              {featured.slice(1, 3).map((f) => (
+                <Link key={f.id} to="/product/$id" params={{ id: f.id }} className="flex flex-col rounded-2xl bg-surface p-3 ring-1 ring-border">
                   <div className="aspect-square w-full overflow-hidden rounded-xl bg-muted">
                     {f.image && <img src={f.image} alt="" className="size-full object-cover" />}
                   </div>
@@ -167,7 +168,7 @@ export default function Home() {
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-x-3 gap-y-6">
-              {latest.map((l: any) => <ProductCard key={l.id} listing={l} />)}
+              {latest.map((l) => <ProductCard key={l.id} listing={l as any} />)}
             </div>
           )}
         </section>
@@ -177,8 +178,8 @@ export default function Home() {
           <section className="space-y-4">
             <h2 className="font-heading text-base font-semibold">{t("nearby")}</h2>
             <div className="no-scrollbar -mx-4 flex gap-4 overflow-x-auto px-4">
-              {nearby.map((l: any) => (
-                <Link key={l.id} to={`/product/${l.id}`} className="flex w-64 shrink-0 items-center gap-3 rounded-2xl bg-surface p-2 ring-1 ring-border">
+              {nearby.map((l) => (
+                <Link key={l.id} to="/product/$id" params={{ id: l.id }} className="flex w-64 shrink-0 items-center gap-3 rounded-2xl bg-surface p-2 ring-1 ring-border">
                   <div className="size-16 overflow-hidden rounded-xl bg-muted">
                     {l.image && <img src={l.image} alt="" className="size-full object-cover" />}
                   </div>
