@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@tanstack/react-router";
 import { Bell, Moon, Sun, MapPin } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
@@ -12,14 +12,13 @@ export function TopBar({ subtitle }: { subtitle?: string }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[430px] items-center justify-between px-4 py-3">
-        <Link to="/" className="flex items-center gap-2 leading-none">
+        <<Link to="/" className="flex items-center gap-2 leading-none">
           <img src="/favicon.ico.jpg" alt="OLKV" className="size-8 rounded-md object-contain" />
           <div className="flex flex-col">
-            <span className="font-heading text-2xl font-bold tracking-tight text-primary">OLKV</span>
-            <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
-              {subtitle ?? t("tagline")}
-            </span>
-          </div>
+          <span className="font-heading text-2xl font-bold tracking-tight text-primary">OLKV</span>
+          <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
+            {subtitle ?? t("tagline")}
+          </span>
         </Link>
         <div className="flex items-center gap-2">
           <div className="hidden items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 ring-1 ring-border sm:flex">
