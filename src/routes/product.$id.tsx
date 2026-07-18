@@ -6,7 +6,7 @@ import { TopBar } from "@/components/TopBar";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 import { formatINR, timeAgo } from "@/lib/format";
-import { Heart, Phone, MessageCircle, Share2, Flag, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Phone, MessageCircle, Share2, Flag, MapPin, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -151,6 +151,8 @@ function Product() {
             </div>
           </section>
         )}
+
+        {seller && <SellerReviews sellerId={seller.id} sellerName={seller.full_name ?? "seller"} />}
 
         {/* Actions */}
         <div className="grid grid-cols-3 gap-2">
