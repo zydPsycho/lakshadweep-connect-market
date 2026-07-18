@@ -13,7 +13,7 @@ export function TopBar({ subtitle }: { subtitle?: string }) {
     <header className="sticky top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[430px] items-center justify-between px-4 py-3">
         <<Link to="/" className="flex items-center gap-2 leading-none">
-          <img src="/favicon.ico.jpg" alt="OLKV" className="size-8 rounded-md object-contain" />
+          <img src="/favicon.ico" alt="OLKV" className="size-8 rounded-md object-contain" />
           <div className="flex flex-col">
           <span className="font-heading text-2xl font-bold tracking-tight text-primary">OLKV</span>
           <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
