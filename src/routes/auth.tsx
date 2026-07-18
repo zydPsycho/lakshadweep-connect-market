@@ -117,7 +117,19 @@ function EmailAuth({ onSuccess }: { onSuccess: () => void }) {
           <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
         </div>
       )}
-      <Button type="submit" className="w-full" disabled={busy}>
+      {mode === "signup" && (
+        <label className="flex items-start gap-2 text-xs text-muted-foreground">
+          <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)}
+            className="mt-0.5 size-4 accent-[hsl(var(--primary))]" />
+          <span>
+            I agree to OLKV's{" "}
+            <Link to="/terms" className="text-primary underline">Terms of Service</Link>{" "}
+            and{" "}
+            <Link to="/privacy" className="text-primary underline">Privacy Policy</Link>.
+          </span>
+        </label>
+      )}
+      <Button type="submit" className="w-full" disabled={busy || (mode === "signup" && !terms)}>
         {busy ? "…" : mode === "signin" ? t("sign_in") : mode === "signup" ? t("sign_up") : "Send reset email"}
       </Button>
       <div className="flex items-center justify-between text-xs">
