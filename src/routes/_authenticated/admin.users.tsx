@@ -22,7 +22,7 @@ function AdminUsers() {
   const { data = [] } = useQuery({
     queryKey: ["admin-users", tab],
     queryFn: async () => {
-      let q = supabase.from("profiles").select("*,user_roles(role)")
+      let q = supabase.from("profiles").select("*,user_roles!user_roles_user_id_fkey(role)")
         .order("created_at", { ascending: false }).limit(300);
       if (tab === "banned") q = q.eq("is_banned", true);
       return (await q).data ?? [];
