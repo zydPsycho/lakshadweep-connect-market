@@ -21,7 +21,11 @@ const schema = z.object({
 export const Route = createFileRoute("/search")({ validateSearch: schema, component: SearchPage });
 
 async function fetchCategories() {
-  const { data } = await supabase.from("categories").select("*").eq("active", true).order("position");
+  const { data } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("active", true)
+    .order("position");
   return data ?? [];
 }
 
@@ -41,6 +45,7 @@ function SearchPage() {
         .from("listings")
         .select("id,title,price,island,condition,created_at,listing_images(url,position)")
         .eq("status", "approved")
+        .eq("is_hidden", false)
         .order("created_at", { ascending: false })
         .limit(60);
       if (search.q) query = query.ilike("title", `%${search.q}%`);
@@ -49,7 +54,10 @@ function SearchPage() {
       if (search.min != null) query = query.gte("price", search.min);
       if (search.max != null) query = query.lte("price", search.max);
       const { data } = await query;
-      return (data ?? []).map((l: any) => ({ ...l, image: l.listing_images?.sort((a: any, b: any) => a.position - b.position)[0]?.url ?? null }));
+      return (data ?? []).map((l: any) => ({
+        ...l,
+        image: l.listing_images?.sort((a: any, b: any) => a.position - b.position)[0]?.url ?? null,
+      }));
     },
   });
 
@@ -63,7 +71,10 @@ function SearchPage() {
       <main className="mx-auto max-w-[430px] space-y-4 px-4 pt-4">
         <form
           className="relative"
-          onSubmit={(e) => { e.preventDefault(); apply({ q }); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            apply({ q });
+          }}
         >
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -72,7 +83,11 @@ function SearchPage() {
             placeholder={t("search_placeholder")}
             className="w-full rounded-xl bg-surface py-3 pl-10 pr-12 text-sm outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/30"
           />
-          <button type="button" onClick={() => setShowFilter((s) => !s)} className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg bg-muted">
+          <button
+            type="button"
+            onClick={() => setShowFilter((s) => !s)}
+            className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg bg-muted"
+          >
             <SlidersHorizontal className="size-4" />
           </button>
         </form>
@@ -82,9 +97,28 @@ function SearchPage() {
             <div>
               <div className="mb-1 text-xs font-semibold">{t("category")}</div>
               <div className="flex flex-wrap gap-1.5">
-                <button onClick={() => apply({ cat: undefined })} className={"rounded-full px-3 py-1 text-xs ring-1 " + (!search.cat ? "bg-primary text-primary-foreground ring-primary" : "bg-background ring-border")}>All</button>
+                <button
+                  onClick={() => apply({ cat: undefined })}
+                  className={
+                    "rounded-full px-3 py-1 text-xs ring-1 " +
+                    (!search.cat
+                      ? "bg-primary text-primary-foreground ring-primary"
+                      : "bg-background ring-border")
+                  }
+                >
+                  All
+                </button>
                 {cats.map((c) => (
-                  <button key={c.slug} onClick={() => apply({ cat: c.slug })} className={"rounded-full px-3 py-1 text-xs ring-1 " + (search.cat === c.slug ? "bg-primary text-primary-foreground ring-primary" : "bg-background ring-border")}>
+                  <button
+                    key={c.slug}
+                    onClick={() => apply({ cat: c.slug })}
+                    className={
+                      "rounded-full px-3 py-1 text-xs ring-1 " +
+                      (search.cat === c.slug
+                        ? "bg-primary text-primary-foreground ring-primary"
+                        : "bg-background ring-border")
+                    }
+                  >
                     {lang === "ml" ? c.name_ml : c.name_en}
                   </button>
                 ))}
@@ -93,25 +127,62 @@ function SearchPage() {
             <div>
               <div className="mb-1 text-xs font-semibold">{t("island")}</div>
               <div className="flex flex-wrap gap-1.5">
-                <button onClick={() => apply({ island: undefined })} className={"rounded-full px-3 py-1 text-xs ring-1 " + (!search.island ? "bg-primary text-primary-foreground ring-primary" : "bg-background ring-border")}>All</button>
+                <button
+                  onClick={() => apply({ island: undefined })}
+                  className={
+                    "rounded-full px-3 py-1 text-xs ring-1 " +
+                    (!search.island
+                      ? "bg-primary text-primary-foreground ring-primary"
+                      : "bg-background ring-border")
+                  }
+                >
+                  All
+                </button>
                 {ISLANDS.map((i) => (
-                  <button key={i} onClick={() => apply({ island: i })} className={"rounded-full px-3 py-1 text-xs ring-1 " + (search.island === i ? "bg-primary text-primary-foreground ring-primary" : "bg-background ring-border")}>{i}</button>
+                  <button
+                    key={i}
+                    onClick={() => apply({ island: i })}
+                    className={
+                      "rounded-full px-3 py-1 text-xs ring-1 " +
+                      (search.island === i
+                        ? "bg-primary text-primary-foreground ring-primary"
+                        : "bg-background ring-border")
+                    }
+                  >
+                    {i}
+                  </button>
                 ))}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Input type="number" placeholder="Min ₹" defaultValue={search.min ?? ""} onBlur={(e) => apply({ min: e.target.value ? Number(e.target.value) : undefined })} />
-              <Input type="number" placeholder="Max ₹" defaultValue={search.max ?? ""} onBlur={(e) => apply({ max: e.target.value ? Number(e.target.value) : undefined })} />
+              <Input
+                type="number"
+                placeholder="Min ₹"
+                defaultValue={search.min ?? ""}
+                onBlur={(e) => apply({ min: e.target.value ? Number(e.target.value) : undefined })}
+              />
+              <Input
+                type="number"
+                placeholder="Max ₹"
+                defaultValue={search.max ?? ""}
+                onBlur={(e) => apply({ max: e.target.value ? Number(e.target.value) : undefined })}
+              />
             </div>
           </div>
         )}
 
-        <div className="text-xs text-muted-foreground">{isFetching ? "Searching…" : `${results.length} results`}</div>
+        <div className="text-xs text-muted-foreground">
+          {isFetching ? "Searching…" : `${results.length} results`}
+        </div>
         {results.length === 0 && !isFetching ? (
-          <p className="rounded-2xl bg-surface p-8 text-center text-sm text-muted-foreground ring-1 ring-border">No matches. Try a different filter.</p>
+          <p className="rounded-2xl bg-surface p-8 text-center text-sm text-muted-foreground ring-1 ring-border">
+            No matches. Try a different filter.
+          </p>
         ) : (
           <div className="grid grid-cols-2 gap-x-3 gap-y-6">
-            {results.map((l) => <ProductCard key={l.id} listing={l as any} />)}
+            {results.map((l) => (
+              <ProductCard key={l.id} listing={l as any} />
+            ))}
           </div>
         )}
       </main>
