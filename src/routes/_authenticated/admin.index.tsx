@@ -1,7 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, CartesianGrid } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  BarChart,
+  Bar,
+  CartesianGrid,
+} from "recharts";
 
 export const Route = createFileRoute("/_authenticated/admin/")({ component: Dashboard });
 
@@ -34,13 +44,38 @@ function Dashboard() {
       const since = new Date();
       since.setUTCDate(since.getUTCDate() - DAYS);
       const sinceIso = since.toISOString();
-      const [users, listings, pending, reports, feedback, appeals, listingRows, userRows, topCats] = await Promise.all([
+      const [
+        users,
+        listings,
+        pending,
+        reports,
+        feedback,
+        appeals,
+        categories,
+        banners,
+        bannerRequests,
+        listingRows,
+        userRows,
+        topCats,
+      ] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("listings").select("id", { count: "exact", head: true }),
-        supabase.from("listings").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase
+          .from("listings")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending"),
         supabase.from("reports").select("id", { count: "exact", head: true }).eq("resolved", false),
         supabase.from("feedback").select("id", { count: "exact", head: true }).eq("status", "open"),
-        supabase.from("appeals").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase
+          .from("appeals")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending"),
+        supabase.from("categories").select("id", { count: "exact", head: true }),
+        supabase.from("banners").select("id", { count: "exact", head: true }),
+        supabase
+          .from("banner_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending"),
         supabase.from("listings").select("created_at").gte("created_at", sinceIso).limit(2000),
         supabase.from("profiles").select("created_at").gte("created_at", sinceIso).limit(2000),
         supabase.from("listings").select("category_slug").eq("status", "approved").limit(2000),
@@ -57,6 +92,9 @@ function Dashboard() {
         reports: reports.count ?? 0,
         feedback: feedback.count ?? 0,
         appeals: appeals.count ?? 0,
+        categories: categories.count ?? 0,
+        banners: banners.count ?? 0,
+        bannerRequests: bannerRequests.count ?? 0,
         listingSeries: buildSeries((listingRows.data ?? []) as any),
         userSeries: buildSeries((userRows.data ?? []) as any),
         topCategories: Array.from(byCat.entries())
@@ -67,25 +105,68 @@ function Dashboard() {
     },
   });
 
-  const cards = [
-    { label: "Users", value: stats?.users ?? "—" },
-    { label: "Listings", value: stats?.listings ?? "—" },
-    { label: "Pending review", value: stats?.pending ?? "—", tone: "primary" },
-    { label: "Open reports", value: stats?.reports ?? "—", tone: "destructive" },
-    { label: "Open feedback", value: stats?.feedback ?? "—" },
-    { label: "Pending appeals", value: stats?.appeals ?? "—", tone: "primary" },
+  const cards: {
+    label: string;
+    value: number | "—";
+    to: string;
+    tone?: "primary" | "destructive";
+  }[] = [
+    { label: "Users", value: stats?.users ?? "—", to: "/admin/users" },
+    { label: "Listings", value: stats?.listings ?? "—", to: "/admin/listings" },
+    {
+      label: "Pending review",
+      value: stats?.pending ?? "—",
+      tone: "primary",
+      to: "/admin/listings",
+    },
+    { label: "Categories", value: stats?.categories ?? "—", to: "/admin/categories" },
+    { label: "Banners", value: stats?.banners ?? "—", to: "/admin/banners" },
+    {
+      label: "Banner requests",
+      value: stats?.bannerRequests ?? "—",
+      tone: "primary",
+      to: "/admin/banner-requests",
+    },
+    {
+      label: "Open reports",
+      value: stats?.reports ?? "—",
+      tone: "destructive",
+      to: "/admin/reports",
+    },
+    { label: "Open feedback", value: stats?.feedback ?? "—", to: "/admin/feedback" },
+    {
+      label: "Pending appeals",
+      value: stats?.appeals ?? "—",
+      tone: "primary",
+      to: "/admin/appeals",
+    },
   ];
 
   return (
     <div className="space-y-6">
       <h1 className="font-heading text-2xl font-bold">Dashboard</h1>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         {cards.map((c) => (
-          <div key={c.label} className="rounded-2xl bg-surface p-4 ring-1 ring-border">
+          <Link
+            key={c.label}
+            to={c.to}
+            className="rounded-2xl bg-surface p-4 ring-1 ring-border transition hover:ring-primary/40 hover:shadow-sm"
+          >
             <div className="text-xs uppercase tracking-wider text-muted-foreground">{c.label}</div>
-            <div className={"mt-1 font-heading text-3xl font-bold " + (c.tone === "primary" ? "text-primary" : c.tone === "destructive" ? "text-destructive" : "")}>{c.value}</div>
-          </div>
+            <div
+              className={
+                "mt-1 font-heading text-3xl font-bold " +
+                (c.tone === "primary"
+                  ? "text-primary"
+                  : c.tone === "destructive"
+                    ? "text-destructive"
+                    : "")
+              }
+            >
+              {c.value}
+            </div>
+          </Link>
         ))}
       </div>
 
@@ -99,7 +180,13 @@ function Dashboard() {
                 <XAxis dataKey="day" fontSize={11} />
                 <YAxis fontSize={11} allowDecimals={false} />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={false}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -113,7 +200,13 @@ function Dashboard() {
                 <XAxis dataKey="day" fontSize={11} />
                 <YAxis fontSize={11} allowDecimals={false} />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="hsl(var(--accent))" strokeWidth={2} dot={false} />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="hsl(var(--accent))"
+                  strokeWidth={2}
+                  dot={false}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
