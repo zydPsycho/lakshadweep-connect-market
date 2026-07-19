@@ -48,13 +48,8 @@ function Sell() {
   const { data: cats = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: async () =>
-      (
-        await supabase
-          .from("categories")
-          .select("*")
-          .eq("active", true)
-          .order("position")
-      ).data ?? [],
+      (await supabase.from("categories").select("*").eq("active", true).order("position")).data ??
+      [],
   });
 
   const [form, setForm] = useState({
@@ -71,9 +66,7 @@ function Sell() {
   function addFiles(list: FileList | null) {
     if (!list) return;
 
-    const arr = Array.from(list).filter((f) =>
-      f.type.startsWith("image/")
-    );
+    const arr = Array.from(list).filter((f) => f.type.startsWith("image/"));
 
     setFiles((prev) => [...prev, ...arr].slice(0, 10));
   }
@@ -105,8 +98,9 @@ function Sell() {
           ...parsed.data,
           user_id: user.id,
 
-          // Publish instantly
-          status: "active",
+          // Publish instantly — no admin approval gate for normal users.
+          // NOTE: the listing_status enum only allows pending/approved/rejected/sold.
+          status: "approved",
         })
         .select("id")
         .maybeSingle();
@@ -127,21 +121,17 @@ function Sell() {
 
           if (uploadError) throw uploadError;
 
-          const url = supabase.storage
-            .from("listing-images")
-            .getPublicUrl(path).data.publicUrl;
+          const url = supabase.storage.from("listing-images").getPublicUrl(path).data.publicUrl;
 
           return {
             listing_id: listing.id,
             url,
             position: index,
           };
-        })
+        }),
       );
 
-      const { error: imageError } = await supabase
-        .from("listing_images")
-        .insert(uploads);
+      const { error: imageError } = await supabase.from("listing_images").insert(uploads);
 
       if (imageError) throw imageError;
 
@@ -162,9 +152,7 @@ function Sell() {
       <TopBar subtitle={t("sell")} />
 
       <main className="mx-auto max-w-[430px] space-y-4 px-4 pt-4">
-        <h1 className="font-heading text-2xl font-bold">
-          Post a Listing
-        </h1>
+        <h1 className="font-heading text-2xl font-bold">Post a Listing</h1>
 
         <form onSubmit={submit} className="space-y-4">
           <div>
@@ -176,19 +164,11 @@ function Sell() {
                   key={index}
                   className="relative aspect-square overflow-hidden rounded-lg bg-muted"
                 >
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt=""
-                    className="size-full object-cover"
-                  />
+                  <img src={URL.createObjectURL(file)} alt="" className="size-full object-cover" />
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setFiles((prev) =>
-                        prev.filter((_, i) => i !== index)
-                      )
-                    }
+                    onClick={() => setFiles((prev) => prev.filter((_, i) => i !== index))}
                     className="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-background/90"
                   >
                     <X className="size-3" />
@@ -283,13 +263,9 @@ function Sell() {
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="new">
-                    {t("new")}
-                  </SelectItem>
+                  <SelectItem value="new">{t("new")}</SelectItem>
 
-                  <SelectItem value="used">
-                    {t("used")}
-                  </SelectItem>
+                  <SelectItem value="used">{t("used")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -313,10 +289,7 @@ function Sell() {
 
               <SelectContent>
                 {cats.map((category) => (
-                  <SelectItem
-                    key={category.slug}
-                    value={category.slug}
-                  >
+                  <SelectItem key={category.slug} value={category.slug}>
                     {category.name_en}
                   </SelectItem>
                 ))}
@@ -367,9 +340,7 @@ function Sell() {
           </div>
 
           <div>
-            <Label htmlFor="contact">
-              {t("contact_number")}
-            </Label>
+            <Label htmlFor="contact">{t("contact_number")}</Label>
 
             <Input
               id="contact"
@@ -386,11 +357,7 @@ function Sell() {
             />
           </div>
 
-          <Button
-            type="submit"
-            disabled={busy}
-            className="w-full"
-          >
+          <Button type="submit" disabled={busy} className="w-full">
             {busy ? "Publishing..." : t("publish")}
           </Button>
 
