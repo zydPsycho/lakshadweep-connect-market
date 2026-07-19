@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { formatINR, timeAgo } from "@/lib/format";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/admin/listings")({ component: AdminListings });
+export const Route = createFileRoute("/_authenticated/admin/listings")({
+  component: AdminListings,
+});
 
 type Filter = "pending" | "approved" | "rejected" | "hidden" | "pinned" | "featured" | "all";
 
 function AdminListings() {
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<Filter>("pending");
+  const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
 
   const { data = [] } = useQuery({
@@ -54,13 +56,23 @@ function AdminListings() {
   }
   async function toggle(id: string, field: "featured" | "is_pinned" | "is_hidden", cur: boolean) {
     const patch: Record<string, boolean> = { [field]: !cur };
-    const { error } = await supabase.from("listings").update(patch as never).eq("id", id);
+    const { error } = await supabase
+      .from("listings")
+      .update(patch as never)
+      .eq("id", id);
     if (error) return toast.error(error.message);
     invalidate();
   }
 
-
-  const filters: Filter[] = ["pending", "approved", "rejected", "hidden", "pinned", "featured", "all"];
+  const filters: Filter[] = [
+    "all",
+    "pending",
+    "approved",
+    "rejected",
+    "hidden",
+    "pinned",
+    "featured",
+  ];
 
   return (
     <div className="space-y-4">
@@ -76,7 +88,12 @@ function AdminListings() {
             <button
               key={s}
               onClick={() => setFilter(s)}
-              className={"rounded-full px-3 py-1 text-xs font-semibold ring-1 " + (filter === s ? "bg-primary text-primary-foreground ring-primary" : "bg-surface ring-border")}
+              className={
+                "rounded-full px-3 py-1 text-xs font-semibold ring-1 " +
+                (filter === s
+                  ? "bg-primary text-primary-foreground ring-primary"
+                  : "bg-surface ring-border")
+              }
             >
               {s}
             </button>
@@ -88,41 +105,83 @@ function AdminListings() {
         {data.map((l: any) => {
           const img = l.listing_images?.sort((a: any, b: any) => a.position - b.position)[0]?.url;
           return (
-            <div key={l.id} className="flex flex-wrap items-center gap-3 rounded-2xl bg-surface p-3 ring-1 ring-border">
+            <div
+              key={l.id}
+              className="flex flex-wrap items-center gap-3 rounded-2xl bg-surface p-3 ring-1 ring-border"
+            >
               <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-muted">
                 {img && <img src={img} alt="" className="size-full object-cover" />}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="line-clamp-1 font-semibold">{l.title}</span>
-                  {l.is_pinned && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">PINNED</span>}
-                  {l.featured && <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-bold text-accent">FEATURED</span>}
-                  {l.is_hidden && <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">HIDDEN</span>}
+                  {l.is_pinned && (
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                      PINNED
+                    </span>
+                  )}
+                  {l.featured && (
+                    <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-bold text-accent">
+                      FEATURED
+                    </span>
+                  )}
+                  {l.is_hidden && (
+                    <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">
+                      HIDDEN
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {l.profiles?.full_name} • {l.island} • {timeAgo(l.created_at)} • {l.view_count ?? 0} views
+                  {l.profiles?.full_name} • {l.island} • {timeAgo(l.created_at)} •{" "}
+                  {l.view_count ?? 0} views
                 </div>
-                <div className="mt-0.5 text-sm font-semibold text-primary">{formatINR(l.price)}</div>
+                <div className="mt-0.5 text-sm font-semibold text-primary">
+                  {formatINR(l.price)}
+                </div>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {l.status !== "approved" && <Button size="sm" onClick={() => setStatus(l.id, "approved")}>Approve</Button>}
-                {l.status !== "rejected" && <Button size="sm" variant="outline" onClick={() => setStatus(l.id, "rejected")}>Reject</Button>}
-                <Button size="sm" variant="outline" onClick={() => toggle(l.id, "featured", l.featured)}>
+                {l.status !== "approved" && (
+                  <Button size="sm" onClick={() => setStatus(l.id, "approved")}>
+                    Approve
+                  </Button>
+                )}
+                {l.status !== "rejected" && (
+                  <Button size="sm" variant="outline" onClick={() => setStatus(l.id, "rejected")}>
+                    Reject
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => toggle(l.id, "featured", l.featured)}
+                >
                   {l.featured ? "Unfeature" : "Feature"}
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => toggle(l.id, "is_pinned", l.is_pinned)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => toggle(l.id, "is_pinned", l.is_pinned)}
+                >
                   {l.is_pinned ? "Unpin" : "Pin"}
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => toggle(l.id, "is_hidden", l.is_hidden)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => toggle(l.id, "is_hidden", l.is_hidden)}
+                >
                   {l.is_hidden ? "Unhide" : "Hide"}
                 </Button>
-                <Button size="sm" variant="destructive" onClick={() => del(l.id)}>Delete</Button>
+                <Button size="sm" variant="destructive" onClick={() => del(l.id)}>
+                  Delete
+                </Button>
               </div>
             </div>
           );
         })}
         {data.length === 0 && (
-          <p className="rounded-2xl bg-surface p-8 text-center text-sm text-muted-foreground ring-1 ring-border">Nothing here.</p>
+          <p className="rounded-2xl bg-surface p-8 text-center text-sm text-muted-foreground ring-1 ring-border">
+            Nothing here.
+          </p>
         )}
       </div>
     </div>
