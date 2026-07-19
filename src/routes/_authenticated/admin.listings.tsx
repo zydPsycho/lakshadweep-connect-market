@@ -53,10 +53,12 @@ function AdminListings() {
     invalidate();
   }
   async function toggle(id: string, field: "featured" | "is_pinned" | "is_hidden", cur: boolean) {
-    const { error } = await supabase.from("listings").update({ [field]: !cur }).eq("id", id);
+    const patch: Record<string, boolean> = { [field]: !cur };
+    const { error } = await supabase.from("listings").update(patch as never).eq("id", id);
     if (error) return toast.error(error.message);
     invalidate();
   }
+
 
   const filters: Filter[] = ["pending", "approved", "rejected", "hidden", "pinned", "featured", "all"];
 

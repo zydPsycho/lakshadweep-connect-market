@@ -51,10 +51,11 @@ export function CategoryChip({
   lang: "en" | "ml";
 }) {
   const Icon =
-    (Icons as Record<
+    ((Icons as unknown) as Record<
       string,
       React.ComponentType<{ className?: string }>
     >)[cat.icon] ?? Icons.Package;
+
 
   const image = categoryImages[cat.slug] ?? categoryImages.default;
 
