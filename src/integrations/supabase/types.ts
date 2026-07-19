@@ -50,36 +50,102 @@ export type Database = {
         }
         Relationships: []
       }
+      banner_requests: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          description: string | null
+          duration_days: number
+          id: string
+          image_url: string
+          link_url: string | null
+          notes: string | null
+          scheduled_end: string | null
+          scheduled_start: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          id?: string
+          image_url: string
+          link_url?: string | null
+          notes?: string | null
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          id?: string
+          image_url?: string
+          link_url?: string | null
+          notes?: string | null
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           active: boolean
+          banner_type: string
+          click_count: number
           created_at: string
+          ends_at: string | null
           id: string
           image_url: string
           link_url: string | null
           position: number
+          starts_at: string | null
           subtitle: string | null
           title: string
+          view_count: number
         }
         Insert: {
           active?: boolean
+          banner_type?: string
+          click_count?: number
           created_at?: string
+          ends_at?: string | null
           id?: string
           image_url: string
           link_url?: string | null
           position?: number
+          starts_at?: string | null
           subtitle?: string | null
           title: string
+          view_count?: number
         }
         Update: {
           active?: boolean
+          banner_type?: string
+          click_count?: number
           created_at?: string
+          ends_at?: string | null
           id?: string
           image_url?: string
           link_url?: string | null
           position?: number
+          starts_at?: string | null
           subtitle?: string | null
           title?: string
+          view_count?: number
         }
         Relationships: []
       }
@@ -89,8 +155,11 @@ export type Database = {
           created_at: string
           icon: string
           id: string
+          image_url: string | null
+          is_featured: boolean
           name_en: string
           name_ml: string
+          parent_slug: string | null
           position: number
           slug: string
         }
@@ -99,8 +168,11 @@ export type Database = {
           created_at?: string
           icon: string
           id?: string
+          image_url?: string | null
+          is_featured?: boolean
           name_en: string
           name_ml: string
+          parent_slug?: string | null
           position?: number
           slug: string
         }
@@ -109,12 +181,23 @@ export type Database = {
           created_at?: string
           icon?: string
           id?: string
+          image_url?: string | null
+          is_featured?: boolean
           name_en?: string
           name_ml?: string
+          parent_slug?: string | null
           position?: number
           slug?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_slug_fkey"
+            columns: ["parent_slug"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       chats: {
         Row: {
@@ -259,14 +342,19 @@ export type Database = {
           created_at: string
           description: string
           featured: boolean
+          featured_until: string | null
           id: string
+          is_hidden: boolean
+          is_pinned: boolean
           island: string
           location: string | null
+          pin_priority: number
           price: number
           status: Database["public"]["Enums"]["listing_status"]
           title: string
           updated_at: string
           user_id: string
+          view_count: number
           views: number
         }
         Insert: {
@@ -276,14 +364,19 @@ export type Database = {
           created_at?: string
           description: string
           featured?: boolean
+          featured_until?: string | null
           id?: string
+          is_hidden?: boolean
+          is_pinned?: boolean
           island: string
           location?: string | null
+          pin_priority?: number
           price: number
           status?: Database["public"]["Enums"]["listing_status"]
           title: string
           updated_at?: string
           user_id: string
+          view_count?: number
           views?: number
         }
         Update: {
@@ -293,14 +386,19 @@ export type Database = {
           created_at?: string
           description?: string
           featured?: boolean
+          featured_until?: string | null
           id?: string
+          is_hidden?: boolean
+          is_pinned?: boolean
           island?: string
           location?: string | null
+          pin_priority?: number
           price?: number
           status?: Database["public"]["Enums"]["listing_status"]
           title?: string
           updated_at?: string
           user_id?: string
+          view_count?: number
           views?: number
         }
         Relationships: [
@@ -526,6 +624,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_listing_views: {
+        Args: { _listing_id: string }
+        Returns: undefined
       }
     }
     Enums: {

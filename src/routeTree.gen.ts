@@ -28,6 +28,7 @@ import { Route as AuthenticatedMyAdsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
 import { Route as AuthenticatedFavouritesRouteImport } from './routes/_authenticated/favourites'
 import { Route as AuthenticatedEditProfileRouteImport } from './routes/_authenticated/edit-profile'
+import { Route as AuthenticatedBannerRequestsRouteImport } from './routes/_authenticated/banner-requests'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -38,6 +39,7 @@ import { Route as AuthenticatedAdminListingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminFeedbackRouteImport } from './routes/_authenticated/admin.feedback'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
 import { Route as AuthenticatedAdminBannersRouteImport } from './routes/_authenticated/admin.banners'
+import { Route as AuthenticatedAdminBannerRequestsRouteImport } from './routes/_authenticated/admin.banner-requests'
 import { Route as AuthenticatedAdminAppealsRouteImport } from './routes/_authenticated/admin.appeals'
 
 const TermsRoute = TermsRouteImport.update({
@@ -136,6 +138,12 @@ const AuthenticatedEditProfileRoute =
     path: '/edit-profile',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedBannerRequestsRoute =
+  AuthenticatedBannerRequestsRouteImport.update({
+    id: '/banner-requests',
+    path: '/banner-requests',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -191,6 +199,12 @@ const AuthenticatedAdminBannersRoute =
     path: '/banners',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminBannerRequestsRoute =
+  AuthenticatedAdminBannerRequestsRouteImport.update({
+    id: '/banner-requests',
+    path: '/banner-requests',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAppealsRoute =
   AuthenticatedAdminAppealsRouteImport.update({
     id: '/appeals',
@@ -208,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/banner-requests': typeof AuthenticatedBannerRequestsRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
   '/favourites': typeof AuthenticatedFavouritesRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
@@ -219,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
   '/admin/appeals': typeof AuthenticatedAdminAppealsRoute
+  '/admin/banner-requests': typeof AuthenticatedAdminBannerRequestsRoute
   '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
@@ -238,6 +254,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/banner-requests': typeof AuthenticatedBannerRequestsRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
   '/favourites': typeof AuthenticatedFavouritesRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
@@ -249,6 +266,7 @@ export interface FileRoutesByTo {
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
   '/admin/appeals': typeof AuthenticatedAdminAppealsRoute
+  '/admin/banner-requests': typeof AuthenticatedAdminBannerRequestsRoute
   '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
@@ -271,6 +289,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/banner-requests': typeof AuthenticatedBannerRequestsRoute
   '/_authenticated/edit-profile': typeof AuthenticatedEditProfileRoute
   '/_authenticated/favourites': typeof AuthenticatedFavouritesRoute
   '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
@@ -282,6 +301,7 @@ export interface FileRoutesById {
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
   '/_authenticated/admin/appeals': typeof AuthenticatedAdminAppealsRoute
+  '/_authenticated/admin/banner-requests': typeof AuthenticatedAdminBannerRequestsRoute
   '/_authenticated/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/feedback': typeof AuthenticatedAdminFeedbackRoute
@@ -304,6 +324,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/admin'
+    | '/banner-requests'
     | '/edit-profile'
     | '/favourites'
     | '/feedback'
@@ -315,6 +336,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/product/$id'
     | '/admin/appeals'
+    | '/admin/banner-requests'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/feedback'
@@ -334,6 +356,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/terms'
+    | '/banner-requests'
     | '/edit-profile'
     | '/favourites'
     | '/feedback'
@@ -345,6 +368,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/product/$id'
     | '/admin/appeals'
+    | '/admin/banner-requests'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/feedback'
@@ -366,6 +390,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/_authenticated/admin'
+    | '/_authenticated/banner-requests'
     | '/_authenticated/edit-profile'
     | '/_authenticated/favourites'
     | '/_authenticated/feedback'
@@ -377,6 +402,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/product/$id'
     | '/_authenticated/admin/appeals'
+    | '/_authenticated/admin/banner-requests'
     | '/_authenticated/admin/banners'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/feedback'
@@ -537,6 +563,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEditProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/banner-requests': {
+      id: '/_authenticated/banner-requests'
+      path: '/banner-requests'
+      fullPath: '/banner-requests'
+      preLoaderRoute: typeof AuthenticatedBannerRequestsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -607,6 +640,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBannersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/banner-requests': {
+      id: '/_authenticated/admin/banner-requests'
+      path: '/banner-requests'
+      fullPath: '/admin/banner-requests'
+      preLoaderRoute: typeof AuthenticatedAdminBannerRequestsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/appeals': {
       id: '/_authenticated/admin/appeals'
       path: '/appeals'
@@ -619,6 +659,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAppealsRoute: typeof AuthenticatedAdminAppealsRoute
+  AuthenticatedAdminBannerRequestsRoute: typeof AuthenticatedAdminBannerRequestsRoute
   AuthenticatedAdminBannersRoute: typeof AuthenticatedAdminBannersRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminFeedbackRoute: typeof AuthenticatedAdminFeedbackRoute
@@ -630,6 +671,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAppealsRoute: AuthenticatedAdminAppealsRoute,
+  AuthenticatedAdminBannerRequestsRoute: AuthenticatedAdminBannerRequestsRoute,
   AuthenticatedAdminBannersRoute: AuthenticatedAdminBannersRoute,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminFeedbackRoute: AuthenticatedAdminFeedbackRoute,
@@ -644,6 +686,7 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedBannerRequestsRoute: typeof AuthenticatedBannerRequestsRoute
   AuthenticatedEditProfileRoute: typeof AuthenticatedEditProfileRoute
   AuthenticatedFavouritesRoute: typeof AuthenticatedFavouritesRoute
   AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
@@ -658,6 +701,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedBannerRequestsRoute: AuthenticatedBannerRequestsRoute,
   AuthenticatedEditProfileRoute: AuthenticatedEditProfileRoute,
   AuthenticatedFavouritesRoute: AuthenticatedFavouritesRoute,
   AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
