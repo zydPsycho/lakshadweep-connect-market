@@ -22,6 +22,8 @@ function AdminLayout() {
     { to: "/admin/appeals", label: "Appeals" },
     { to: "/admin/categories", label: "Categories" },
     { to: "/admin/banners", label: "Banners" },
+    { to: "/admin/banner-requests", label: "Banner requests" },
+
   ];
   return (
     <div className="min-h-screen bg-background">
