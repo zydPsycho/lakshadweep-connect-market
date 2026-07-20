@@ -357,14 +357,20 @@ function SellerReviews({ sellerId, sellerName }: { sellerId: string; sellerName:
 
   const { data: reviews = [] } = useQuery({
     queryKey: ["reviews", sellerId],
-    queryFn: async () =>
-      (
-        await supabase
-          .from("reviews")
-          .select("*,profiles!reviews_reviewer_id_fkey(full_name,avatar_url)")
-          .eq("seller_id", sellerId)
-          .order("created_at", { ascending: false })
-      ).data ?? [],
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from("reviews")
+        .select("*")
+        .eq("seller_id", sellerId)
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("[reviews]", error);
+        return [];
+      }
+      const { fetchProfilesByIds, attachProfiles } = await import("@/lib/attach-profiles");
+      const profs = await fetchProfilesByIds((rows ?? []).map((r: any) => r.reviewer_id));
+      return attachProfiles(rows ?? [], "reviewer_id", profs);
+    },
   });
 
   const { data: mine } = useQuery({
