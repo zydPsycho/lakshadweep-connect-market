@@ -40,17 +40,26 @@ function Product() {
   const [imgIdx, setImgIdx] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["listing", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: listing, error: lErr } = await supabase
         .from("listings")
-        .select(
-          "*,listing_images(url,position),profiles!listings_user_id_fkey(id,full_name,avatar_url,phone,island)",
-        )
+        .select("*,listing_images(url,position)")
         .eq("id", id)
         .maybeSingle();
-      return data;
+      if (lErr) {
+        console.error("[product listing]", lErr);
+        throw lErr;
+      }
+      if (!listing) return null;
+      const { data: seller, error: pErr } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url, phone, island")
+        .eq("id", listing.user_id)
+        .maybeSingle();
+      if (pErr) console.error("[product seller]", pErr);
+      return { ...listing, profiles: seller ?? null } as any;
     },
   });
 
