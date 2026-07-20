@@ -43,7 +43,7 @@ function MyAds() {
       const { data } = await supabase
         .from("listings")
         .select(
-          "id,title,description,price,category_slug,condition,island,location,contact_number,status,created_at,listing_images(url,position)",
+          "id,title,description,price,category_slug,condition,island,location,contact_number,hide_phone,status,created_at,listing_images(url,position)",
         )
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
@@ -155,6 +155,7 @@ function EditListingDialog({ listing, onSaved }: { listing: any; onSaved: () => 
     island: listing.island as string,
     location: (listing.location ?? "") as string,
     contact_number: listing.contact_number as string,
+    hide_phone: !!listing.hide_phone,
   });
 
   async function save() {
@@ -174,6 +175,7 @@ function EditListingDialog({ listing, onSaved }: { listing: any; onSaved: () => 
         island: form.island,
         location: form.location.trim() || null,
         contact_number: form.contact_number.trim(),
+        hide_phone: form.hide_phone,
       })
       .eq("id", listing.id);
     setBusy(false);
@@ -270,6 +272,15 @@ function EditListingDialog({ listing, onSaved }: { listing: any; onSaved: () => 
               onChange={(e) => setForm({ ...form, contact_number: e.target.value })}
             />
           </div>
+          <label className="flex items-center gap-2 rounded-xl bg-muted p-3 text-sm">
+            <input
+              type="checkbox"
+              checked={form.hide_phone}
+              onChange={(e) => setForm({ ...form, hide_phone: e.target.checked })}
+              className="size-4 accent-primary"
+            />
+            <span>Hide my phone number (buyers can still request a call in chat)</span>
+          </label>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>

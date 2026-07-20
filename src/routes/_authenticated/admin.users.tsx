@@ -22,28 +22,10 @@ function AdminUsers() {
   const { data = [] } = useQuery({
     queryKey: ["admin-users", tab],
     queryFn: async () => {
-      let q = supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(300);
+      let q = supabase.from("profiles").select("*,user_roles!user_roles_user_id_fkey(role)")
+        .order("created_at", { ascending: false }).limit(300);
       if (tab === "banned") q = q.eq("is_banned", true);
-      const { data: rows, error } = await q;
-      if (error) {
-        console.error("[admin-users]", error);
-        return [];
-      }
-      const ids = (rows ?? []).map((r: any) => r.id);
-      const rolesRes = ids.length
-        ? await supabase.from("user_roles").select("user_id, role").in("user_id", ids)
-        : { data: [] as any[] };
-      const rmap = new Map<string, any[]>();
-      for (const r of rolesRes.data ?? []) {
-        const arr = rmap.get(r.user_id) ?? [];
-        arr.push({ role: r.role });
-        rmap.set(r.user_id, arr);
-      }
-      return (rows ?? []).map((u: any) => ({ ...u, user_roles: rmap.get(u.id) ?? [] }));
+      return (await q).data ?? [];
     },
   });
 

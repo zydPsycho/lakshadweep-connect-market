@@ -19,16 +19,11 @@ function AdminAppeals() {
   const { data = [] } = useQuery({
     queryKey: ["admin-appeals", filter],
     queryFn: async () => {
-      let q = supabase.from("appeals").select("*").order("created_at", { ascending: false }).limit(200);
+      let q = supabase.from("appeals")
+        .select("*,profiles!appeals_user_id_fkey(full_name,phone,is_banned,ban_reason)")
+        .order("created_at", { ascending: false }).limit(200);
       if (filter !== "all") q = q.eq("status", filter);
-      const { data: rows, error } = await q;
-      if (error) {
-        console.error("[admin-appeals]", error);
-        return [];
-      }
-      const { fetchProfilesByIds, attachProfiles } = await import("@/lib/attach-profiles");
-      const profs = await fetchProfilesByIds((rows ?? []).map((r: any) => r.user_id));
-      return attachProfiles(rows ?? [], "user_id", profs);
+      return (await q).data ?? [];
     },
   });
 

@@ -14,27 +14,10 @@ function ChatsList() {
     queryKey: ["chats", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data: rows, error } = await supabase
-        .from("chats")
-        .select(
-          "id,updated_at,buyer_id,seller_id,listing_id,listings(id,title,listing_images(url,position))",
-        )
+      const { data } = await supabase.from("chats")
+        .select("id,updated_at,buyer_id,seller_id,listing_id,listings(id,title,listing_images(url,position)),buyer:profiles!chats_buyer_id_fkey(full_name,avatar_url),seller:profiles!chats_seller_id_fkey(full_name,avatar_url)")
         .order("updated_at", { ascending: false });
-      if (error) {
-        console.error("[chats]", error);
-        return [];
-      }
-      const ids: string[] = [];
-      for (const c of rows ?? []) {
-        ids.push(c.buyer_id, c.seller_id);
-      }
-      const { fetchProfilesByIds } = await import("@/lib/attach-profiles");
-      const profs = await fetchProfilesByIds(ids);
-      return (rows ?? []).map((c: any) => ({
-        ...c,
-        buyer: profs.get(c.buyer_id) ?? null,
-        seller: profs.get(c.seller_id) ?? null,
-      }));
+      return data ?? [];
     },
   });
   return (

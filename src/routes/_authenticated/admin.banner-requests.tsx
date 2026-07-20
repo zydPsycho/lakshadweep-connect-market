@@ -19,18 +19,12 @@ function AdminBannerRequests() {
     queryFn: async () => {
       let q = supabase
         .from("banner_requests")
-        .select("*")
+        .select("*,profiles!banner_requests_user_id_fkey(full_name)")
         .order("created_at", { ascending: false })
         .limit(200);
       if (filter !== "all") q = q.eq("status", filter);
-      const { data, error } = await q;
-      if (error) {
-        console.error("[admin-banner-requests]", error);
-        return [];
-      }
-      const { fetchProfilesByIds, attachProfiles } = await import("@/lib/attach-profiles");
-      const profs = await fetchProfilesByIds((data ?? []).map((r: any) => r.user_id));
-      return attachProfiles(data ?? [], "user_id", profs);
+      const { data } = await q;
+      return data ?? [];
     },
   });
 

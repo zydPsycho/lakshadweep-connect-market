@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TopBar } from "@/components/TopBar";
 import { useAuth } from "@/lib/auth";
-import { Send, ChevronLeft } from "lucide-react";
+import { Send, ChevronLeft, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/chats/$id")({ component: ChatView });
@@ -18,21 +18,7 @@ function ChatView() {
 
   const { data: chat } = useQuery({
     queryKey: ["chat", id],
-    queryFn: async () => {
-      const { data: c, error } = await supabase
-        .from("chats")
-        .select("*,listings(id,title,listing_images(url,position))")
-        .eq("id", id)
-        .maybeSingle();
-      if (error) {
-        console.error("[chat]", error);
-        return null;
-      }
-      if (!c) return null;
-      const { fetchProfilesByIds } = await import("@/lib/attach-profiles");
-      const profs = await fetchProfilesByIds([c.buyer_id, c.seller_id]);
-      return { ...c, buyer: profs.get(c.buyer_id) ?? null, seller: profs.get(c.seller_id) ?? null };
-    },
+    queryFn: async () => (await supabase.from("chats").select("*,listings(id,title,listing_images(url,position)),buyer:profiles!chats_buyer_id_fkey(full_name,avatar_url),seller:profiles!chats_seller_id_fkey(full_name,avatar_url)").eq("id", id).maybeSingle()).data,
   });
 
   const { data: messages = [] } = useQuery({
@@ -56,6 +42,16 @@ function ChatView() {
     const content = text.trim().slice(0, 2000);
     setText("");
     await supabase.from("messages").insert({ chat_id: id, sender_id: user.id, content });
+    await supabase.from("chats").update({ updated_at: new Date().toISOString() }).eq("id", id);
+  }
+
+  async function requestCall() {
+    if (!user) return;
+    await supabase.from("messages").insert({
+      chat_id: id,
+      sender_id: user.id,
+      content: "📞 Hi, could you please call me back when you get a chance? Thanks!",
+    });
     await supabase.from("chats").update({ updated_at: new Date().toISOString() }).eq("id", id);
   }
 
@@ -93,6 +89,15 @@ function ChatView() {
           <div ref={endRef} />
         </div>
         <form onSubmit={send} className="sticky bottom-0 mt-3 flex gap-2 pb-[env(safe-area-inset-bottom)]">
+          <button
+            type="button"
+            onClick={requestCall}
+            title="Request a call"
+            aria-label="Request a call"
+            className="grid size-11 shrink-0 place-items-center rounded-full bg-muted ring-1 ring-border"
+          >
+            <Phone className="size-4" />
+          </button>
           <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type a message" className="flex-1 rounded-full bg-surface px-4 py-3 text-sm ring-1 ring-border outline-none focus:ring-2 focus:ring-primary/30" />
           <button className="grid size-11 place-items-center rounded-full bg-primary text-primary-foreground"><Send className="size-4" /></button>
         </form>
