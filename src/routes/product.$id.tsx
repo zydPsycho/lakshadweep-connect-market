@@ -132,6 +132,12 @@ function Product() {
 
   if (isLoading)
     return <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>;
+  if (error)
+    return (
+      <div className="p-8 text-center text-sm text-destructive">
+        Couldn't load this listing. Please try again.
+      </div>
+    );
   if (!data) return <div className="p-8 text-center">Listing not found.</div>;
 
   const imgs = (data.listing_images ?? []).sort((a: any, b: any) => a.position - b.position);
