@@ -487,6 +487,7 @@ export type Database = {
           bio: string | null
           created_at: string
           full_name: string | null
+          hide_contact: boolean
           id: string
           is_banned: boolean
           island: string | null
@@ -501,6 +502,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           full_name?: string | null
+          hide_contact?: boolean
           id: string
           is_banned?: boolean
           island?: string | null
@@ -515,6 +517,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           full_name?: string | null
+          hide_contact?: boolean
           id?: string
           is_banned?: boolean
           island?: string | null
