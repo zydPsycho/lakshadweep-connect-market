@@ -55,7 +55,7 @@ function Product() {
       if (!listing) return null;
       const { data: seller, error: pErr } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url, phone, island")
+        .select("id, full_name, avatar_url, phone, island, hide_contact")
         .eq("id", listing.user_id)
         .maybeSingle();
       if (pErr) console.error("[product seller]", pErr);
@@ -256,27 +256,16 @@ function Product() {
         {seller && <SellerReviews sellerId={seller.id} sellerName={seller.full_name ?? "seller"} />}
 
         {/* Actions */}
-        <div className="grid grid-cols-3 gap-2">
-          <a
-            href={digits ? `tel:${digits}` : "#"}
-            className="flex flex-col items-center gap-1 rounded-2xl bg-primary py-3 text-primary-foreground shadow-float"
-          >
-            <Phone className="size-4" />
-            <span className="text-xs font-semibold">{t("call")}</span>
-          </a>
-          <a
-            href={
-              digits
-                ? `https://wa.me/${digits.replace(/^\+/, "")}?text=${encodeURIComponent("Hi, is this still available on OLKV? " + window.location.href)}`
-                : "#"
-            }
-            target="_blank"
-            rel="noreferrer"
-            className="flex flex-col items-center gap-1 rounded-2xl bg-accent py-3 text-accent-foreground shadow-accent-glow"
-          >
-            <MessageCircle className="size-4" />
-            <span className="text-xs font-semibold">{t("whatsapp")}</span>
-          </a>
+        <div className={"grid gap-2 " + (!seller?.hide_contact && digits ? "grid-cols-2" : "grid-cols-1")}>
+          {!seller?.hide_contact && digits && (
+            <a
+              href={`tel:${digits}`}
+              className="flex flex-col items-center gap-1 rounded-2xl bg-primary py-3 text-primary-foreground shadow-float"
+            >
+              <Phone className="size-4" />
+              <span className="text-xs font-semibold">{t("call")}</span>
+            </a>
+          )}
           <button
             onClick={startChat}
             className="flex flex-col items-center gap-1 rounded-2xl bg-surface py-3 ring-1 ring-border"
