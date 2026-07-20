@@ -35,7 +35,6 @@ const schema = z.object({
   island: z.string().min(1),
   location: z.string().max(120).optional(),
   contact_number: z.string().trim().min(6).max(20),
-  hide_phone: z.boolean().optional().default(false),
 });
 
 function Sell() {
@@ -62,7 +61,6 @@ function Sell() {
     island: "",
     location: "",
     contact_number: "",
-    hide_phone: false,
   });
 
   function addFiles(list: FileList | null) {
@@ -358,19 +356,6 @@ function Sell() {
               }
             />
           </div>
-
-          <label className="flex items-center gap-2 rounded-xl bg-surface p-3 text-sm ring-1 ring-border">
-            <input
-              type="checkbox"
-              checked={form.hide_phone}
-              onChange={(e) => setForm({ ...form, hide_phone: e.target.checked })}
-              className="size-4 accent-primary"
-            />
-            <span>
-              Hide my phone number — buyers will only be able to reach me via in-app chat
-              (they can still request a call back).
-            </span>
-          </label>
 
           <Button type="submit" disabled={busy} className="w-full">
             {busy ? "Publishing..." : t("publish")}
