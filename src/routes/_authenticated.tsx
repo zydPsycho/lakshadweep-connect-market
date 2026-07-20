@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { GlobalNotificationListener } from "@/components/GlobalNotificationListener";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -15,5 +16,10 @@ export const Route = createFileRoute("/_authenticated")({
       if (profile?.is_banned) throw redirect({ to: "/banned" });
     }
   },
-  component: () => <Outlet />,
+  component: () => (
+    <>
+      <GlobalNotificationListener />
+      <Outlet />
+    </>
+  ),
 });

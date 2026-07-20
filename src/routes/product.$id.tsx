@@ -121,12 +121,23 @@ function Product() {
     if (chatId) nav({ to: "/chats/$id", params: { id: chatId } });
   }
 
-  function share() {
+  async function share() {
     const url = window.location.href;
-    if (navigator.share) navigator.share({ title: data?.title, url }).catch(() => {});
-    else {
-      navigator.clipboard.writeText(url);
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: data?.title, url });
+        return;
+      } catch {
+        // Web Share API rejected (unsupported context, or the person
+        // cancelled the native share sheet) — fall through to clipboard
+        // instead of doing nothing.
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
       toast.success("Link copied");
+    } catch {
+      toast.error("Couldn't copy the link — copy it from the address bar instead.");
     }
   }
 
