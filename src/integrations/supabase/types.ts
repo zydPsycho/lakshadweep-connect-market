@@ -343,7 +343,6 @@ export type Database = {
           description: string
           featured: boolean
           featured_until: string | null
-          hide_phone: boolean
           id: string
           is_hidden: boolean
           is_pinned: boolean
@@ -366,7 +365,6 @@ export type Database = {
           description: string
           featured?: boolean
           featured_until?: string | null
-          hide_phone?: boolean
           id?: string
           is_hidden?: boolean
           is_pinned?: boolean
@@ -389,7 +387,6 @@ export type Database = {
           description?: string
           featured?: boolean
           featured_until?: string | null
-          hide_phone?: boolean
           id?: string
           is_hidden?: boolean
           is_pinned?: boolean

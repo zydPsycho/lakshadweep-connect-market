@@ -40,17 +40,26 @@ function Product() {
   const [imgIdx, setImgIdx] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["listing", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: listing, error: lErr } = await supabase
         .from("listings")
-        .select(
-          "*,listing_images(url,position),profiles!listings_user_id_fkey(id,full_name,avatar_url,phone,island)",
-        )
+        .select("*,listing_images(url,position)")
         .eq("id", id)
         .maybeSingle();
-      return data;
+      if (lErr) {
+        console.error("[product listing]", lErr);
+        throw lErr;
+      }
+      if (!listing) return null;
+      const { data: seller, error: pErr } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url, phone, island")
+        .eq("id", listing.user_id)
+        .maybeSingle();
+      if (pErr) console.error("[product seller]", pErr);
+      return { ...listing, profiles: seller ?? null } as any;
     },
   });
 
@@ -88,7 +97,7 @@ function Product() {
     qc.invalidateQueries({ queryKey: ["favourites"] });
   }
 
-  async function startChat(initialMessage?: string) {
+  async function startChat() {
     if (!user) return nav({ to: "/auth", search: { redirect: window.location.pathname } });
     if (!data) return;
     if (user.id === data.user_id) return toast.info("This is your own listing.");
@@ -109,39 +118,26 @@ function Product() {
       if (error) return toast.error(error.message);
       chatId = created?.id;
     }
-    if (chatId && initialMessage) {
-      await supabase.from("messages").insert({ chat_id: chatId, sender_id: user.id, content: initialMessage });
-      await supabase.from("chats").update({ updated_at: new Date().toISOString() }).eq("id", chatId);
-    }
     if (chatId) nav({ to: "/chats/$id", params: { id: chatId } });
   }
 
-  function requestCall() {
-    startChat("📞 Hi, could you please call me back when you get a chance? Thanks!");
-  }
-
-  async function share() {
+  function share() {
     const url = window.location.href;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: data?.title, url });
-        return;
-      } catch {
-        // Web Share API rejected (unsupported context, e.g. an embedded
-        // preview, or the person cancelled the native share sheet) — fall
-        // through to the clipboard fallback below instead of doing nothing.
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(url);
+    if (navigator.share) navigator.share({ title: data?.title, url }).catch(() => {});
+    else {
+      navigator.clipboard.writeText(url);
       toast.success("Link copied");
-    } catch {
-      toast.error("Couldn't copy the link — copy it from the address bar instead.");
     }
   }
 
   if (isLoading)
     return <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>;
+  if (error)
+    return (
+      <div className="p-8 text-center text-sm text-destructive">
+        Couldn't load this listing. Please try again.
+      </div>
+    );
   if (!data) return <div className="p-8 text-center">Listing not found.</div>;
 
   const imgs = (data.listing_images ?? []).sort((a: any, b: any) => a.position - b.position);
@@ -249,26 +245,29 @@ function Product() {
         {seller && <SellerReviews sellerId={seller.id} sellerName={seller.full_name ?? "seller"} />}
 
         {/* Actions */}
-        <div className="grid grid-cols-2 gap-2">
-          {!data.hide_phone && digits ? (
-            <a
-              href={`tel:${digits}`}
-              className="flex flex-col items-center gap-1 rounded-2xl bg-primary py-3 text-primary-foreground shadow-float"
-            >
-              <Phone className="size-4" />
-              <span className="text-xs font-semibold">{t("call")}</span>
-            </a>
-          ) : (
-            <button
-              onClick={requestCall}
-              className="flex flex-col items-center gap-1 rounded-2xl bg-primary py-3 text-primary-foreground shadow-float"
-            >
-              <Phone className="size-4" />
-              <span className="text-xs font-semibold">Request a call</span>
-            </button>
-          )}
+        <div className="grid grid-cols-3 gap-2">
+          <a
+            href={digits ? `tel:${digits}` : "#"}
+            className="flex flex-col items-center gap-1 rounded-2xl bg-primary py-3 text-primary-foreground shadow-float"
+          >
+            <Phone className="size-4" />
+            <span className="text-xs font-semibold">{t("call")}</span>
+          </a>
+          <a
+            href={
+              digits
+                ? `https://wa.me/${digits.replace(/^\+/, "")}?text=${encodeURIComponent("Hi, is this still available on OLKV? " + window.location.href)}`
+                : "#"
+            }
+            target="_blank"
+            rel="noreferrer"
+            className="flex flex-col items-center gap-1 rounded-2xl bg-accent py-3 text-accent-foreground shadow-accent-glow"
+          >
+            <MessageCircle className="size-4" />
+            <span className="text-xs font-semibold">{t("whatsapp")}</span>
+          </a>
           <button
-            onClick={() => startChat()}
+            onClick={startChat}
             className="flex flex-col items-center gap-1 rounded-2xl bg-surface py-3 ring-1 ring-border"
           >
             <MessageCircle className="size-4" />
@@ -358,14 +357,20 @@ function SellerReviews({ sellerId, sellerName }: { sellerId: string; sellerName:
 
   const { data: reviews = [] } = useQuery({
     queryKey: ["reviews", sellerId],
-    queryFn: async () =>
-      (
-        await supabase
-          .from("reviews")
-          .select("*,profiles!reviews_reviewer_id_fkey(full_name,avatar_url)")
-          .eq("seller_id", sellerId)
-          .order("created_at", { ascending: false })
-      ).data ?? [],
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from("reviews")
+        .select("*")
+        .eq("seller_id", sellerId)
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("[reviews]", error);
+        return [];
+      }
+      const { fetchProfilesByIds, attachProfiles } = await import("@/lib/attach-profiles");
+      const profs = await fetchProfilesByIds((rows ?? []).map((r: any) => r.reviewer_id));
+      return attachProfiles(rows ?? [], "reviewer_id", profs);
+    },
   });
 
   const { data: mine } = useQuery({

@@ -22,7 +22,7 @@ function AdminListings() {
     queryFn: async () => {
       let query = supabase
         .from("listings")
-        .select("*,profiles!listings_user_id_fkey(full_name),listing_images(url,position)")
+        .select("*,listing_images(url,position)")
         .order("is_pinned", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(200);
@@ -32,8 +32,14 @@ function AdminListings() {
       else if (filter === "pinned") query = query.eq("is_pinned", true);
       else if (filter === "featured") query = query.eq("featured", true);
       if (q.trim()) query = query.ilike("title", `%${q.trim()}%`);
-      const { data } = await query;
-      return data ?? [];
+      const { data, error } = await query;
+      if (error) {
+        console.error("[admin-listings]", error);
+        return [];
+      }
+      const { fetchProfilesByIds, attachProfiles } = await import("@/lib/attach-profiles");
+      const profs = await fetchProfilesByIds((data ?? []).map((r: any) => r.user_id));
+      return attachProfiles(data ?? [], "user_id", profs);
     },
   });
 
