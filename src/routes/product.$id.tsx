@@ -40,17 +40,26 @@ function Product() {
   const [imgIdx, setImgIdx] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["listing", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: listing, error: lErr } = await supabase
         .from("listings")
-        .select(
-          "*,listing_images(url,position),profiles!listings_user_id_fkey(id,full_name,avatar_url,phone,island)",
-        )
+        .select("*,listing_images(url,position)")
         .eq("id", id)
         .maybeSingle();
-      return data;
+      if (lErr) {
+        console.error("[product listing]", lErr);
+        throw lErr;
+      }
+      if (!listing) return null;
+      const { data: seller, error: pErr } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url, phone, island")
+        .eq("id", listing.user_id)
+        .maybeSingle();
+      if (pErr) console.error("[product seller]", pErr);
+      return { ...listing, profiles: seller ?? null } as any;
     },
   });
 
@@ -123,6 +132,12 @@ function Product() {
 
   if (isLoading)
     return <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>;
+  if (error)
+    return (
+      <div className="p-8 text-center text-sm text-destructive">
+        Couldn't load this listing. Please try again.
+      </div>
+    );
   if (!data) return <div className="p-8 text-center">Listing not found.</div>;
 
   const imgs = (data.listing_images ?? []).sort((a: any, b: any) => a.position - b.position);
@@ -342,14 +357,20 @@ function SellerReviews({ sellerId, sellerName }: { sellerId: string; sellerName:
 
   const { data: reviews = [] } = useQuery({
     queryKey: ["reviews", sellerId],
-    queryFn: async () =>
-      (
-        await supabase
-          .from("reviews")
-          .select("*,profiles!reviews_reviewer_id_fkey(full_name,avatar_url)")
-          .eq("seller_id", sellerId)
-          .order("created_at", { ascending: false })
-      ).data ?? [],
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from("reviews")
+        .select("*")
+        .eq("seller_id", sellerId)
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("[reviews]", error);
+        return [];
+      }
+      const { fetchProfilesByIds, attachProfiles } = await import("@/lib/attach-profiles");
+      const profs = await fetchProfilesByIds((rows ?? []).map((r: any) => r.reviewer_id));
+      return attachProfiles(rows ?? [], "reviewer_id", profs);
+    },
   });
 
   const { data: mine } = useQuery({

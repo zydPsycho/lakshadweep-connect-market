@@ -10,7 +10,32 @@ function AdminReports() {
   const qc = useQueryClient();
   const { data = [] } = useQuery({
     queryKey: ["admin-reports"],
-    queryFn: async () => (await supabase.from("reports").select("*,listings(id,title),profiles!reports_reporter_id_fkey(full_name)").order("created_at", { ascending: false }).limit(200)).data ?? [],
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from("reports")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) {
+        console.error("[admin-reports]", error);
+        return [];
+      }
+      const listingIds = Array.from(new Set((rows ?? []).map((r: any) => r.listing_id).filter(Boolean)));
+      const [listingsRes, profs] = await Promise.all([
+        listingIds.length
+          ? supabase.from("listings").select("id,title").in("id", listingIds)
+          : Promise.resolve({ data: [] as any[], error: null }),
+        (await import("@/lib/attach-profiles")).fetchProfilesByIds(
+          (rows ?? []).map((r: any) => r.reporter_id),
+        ),
+      ]);
+      const lmap = new Map((listingsRes.data ?? []).map((l: any) => [l.id, l]));
+      return (rows ?? []).map((r: any) => ({
+        ...r,
+        listings: lmap.get(r.listing_id) ?? null,
+        profiles: (r.reporter_id && profs.get(r.reporter_id)) || null,
+      }));
+    },
   });
   async function resolve(id: string) {
     await supabase.from("reports").update({ resolved: true }).eq("id", id);
