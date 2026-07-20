@@ -20,11 +20,16 @@ function AdminFeedback() {
   const { data = [] } = useQuery({
     queryKey: ["admin-feedback", filter],
     queryFn: async () => {
-      let q = supabase.from("feedback")
-        .select("*,profiles!feedback_user_id_fkey(full_name,phone)")
-        .order("created_at", { ascending: false }).limit(200);
+      let q = supabase.from("feedback").select("*").order("created_at", { ascending: false }).limit(200);
       if (filter !== "all") q = q.eq("status", filter);
-      return (await q).data ?? [];
+      const { data: rows, error } = await q;
+      if (error) {
+        console.error("[admin-feedback]", error);
+        return [];
+      }
+      const { fetchProfilesByIds, attachProfiles } = await import("@/lib/attach-profiles");
+      const profs = await fetchProfilesByIds((rows ?? []).map((r: any) => r.user_id));
+      return attachProfiles(rows ?? [], "user_id", profs);
     },
   });
 
