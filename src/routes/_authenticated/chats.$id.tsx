@@ -18,7 +18,21 @@ function ChatView() {
 
   const { data: chat } = useQuery({
     queryKey: ["chat", id],
-    queryFn: async () => (await supabase.from("chats").select("*,listings(id,title,listing_images(url,position)),buyer:profiles!chats_buyer_id_fkey(full_name,avatar_url),seller:profiles!chats_seller_id_fkey(full_name,avatar_url)").eq("id", id).maybeSingle()).data,
+    queryFn: async () => {
+      const { data: c, error } = await supabase
+        .from("chats")
+        .select("*,listings(id,title,listing_images(url,position))")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) {
+        console.error("[chat]", error);
+        return null;
+      }
+      if (!c) return null;
+      const { fetchProfilesByIds } = await import("@/lib/attach-profiles");
+      const profs = await fetchProfilesByIds([c.buyer_id, c.seller_id]);
+      return { ...c, buyer: profs.get(c.buyer_id) ?? null, seller: profs.get(c.seller_id) ?? null };
+    },
   });
 
   const { data: messages = [] } = useQuery({
