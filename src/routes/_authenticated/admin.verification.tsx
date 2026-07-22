@@ -15,7 +15,9 @@ function AdminVerification() {
     queryKey: ["admin-verification"],
     queryFn: async () => {
       const { data: reqs } = await supabase.from("verification_requests").select("*").order("created_at", { ascending: false });
-      return attachProfiles(reqs ?? [], "user_id");
+      const { fetchProfilesByIds } = await import("@/lib/attach-profiles");
+      const profiles = await fetchProfilesByIds((reqs ?? []).map((r) => r.user_id));
+      return attachProfiles(reqs ?? [], "user_id", profiles, "profile");
     },
   });
 

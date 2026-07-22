@@ -29,12 +29,13 @@ function AdminSettings() {
 
   useEffect(() => {
     if (!data) return;
-    setFeatured({ ...featured, ...data.featured_price });
-    setBump({ ...bump, ...data.bump_price });
-    setVerif({ ...verif, ...data.verification_fee });
-    setAdmob({ ...admob, ...data.admob });
-    setMaint({ ...maint, ...data.maintenance_mode });
-    setSupport({ ...support, ...data.support_contact });
+    const g = (k: string) => (data[k] && typeof data[k] === "object" ? (data[k] as any) : {});
+    setFeatured({ ...featured, ...g("featured_price") });
+    setBump({ ...bump, ...g("bump_price") });
+    setVerif({ ...verif, ...g("verification_fee") });
+    setAdmob({ ...admob, ...g("admob") });
+    setMaint({ ...maint, ...g("maintenance_mode") });
+    setSupport({ ...support, ...g("support_contact") });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 

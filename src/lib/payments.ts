@@ -11,7 +11,9 @@ export type ChargeInput = {
   currency?: string;
   purpose: PaymentPurpose;
   targetId?: string | null;
-  meta?: Record<string, unknown>;
+  // meta is Json-compatible; keep loose here
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  meta?: any;
 };
 
 export async function charge(input: ChargeInput) {

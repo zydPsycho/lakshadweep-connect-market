@@ -60,7 +60,7 @@ function PlanRow({ plan, onSave }: { plan: any; onSave: (p: any) => void }) {
         <Label>Benefits (one per line)</Label>
         <textarea className="mt-1 w-full rounded-lg border bg-background p-2 text-sm" rows={4} value={benefits} onChange={(e) => setBenefits(e.target.value)} />
       </div>
-      <Button size="sm" className="mt-3" onClick={() => onSave({ price: Number(price), duration_days: Number(days), is_active: active, benefits: benefits.split("\n").map((s) => s.trim()).filter(Boolean) })}>Save</Button>
+      <Button size="sm" className="mt-3" onClick={() => onSave({ price: Number(price), duration_days: Number(days), is_active: active, benefits: benefits.split("\n").map((s: string) => s.trim()).filter(Boolean) })}>Save</Button>
     </div>
   );
 }

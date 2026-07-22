@@ -32,6 +32,8 @@ function Business() {
 
   useEffect(() => {
     if (data) {
+      const socials = (data.socials ?? {}) as any;
+      const hours = (data.hours ?? {}) as any;
       setForm({
         business_name: data.business_name ?? "",
         logo_url: data.logo_url ?? "",
@@ -40,9 +42,9 @@ function Business() {
         contact_phone: data.contact_phone ?? "",
         contact_email: data.contact_email ?? "",
         website: data.website ?? "",
-        instagram: data.socials?.instagram ?? "",
-        facebook: data.socials?.facebook ?? "",
-        hours: data.hours?.text ?? "",
+        instagram: socials.instagram ?? "",
+        facebook: socials.facebook ?? "",
+        hours: hours.text ?? "",
       });
     }
   }, [data]);
